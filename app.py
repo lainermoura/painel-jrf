@@ -23,7 +23,8 @@ st.title('Painel de Controle - JRF')
 
 #Tipo, Sessão e Turma
 tipo = st.selectbox('Selecione o tipo:', ['Selecione a opção', 'Pauta', 'Ata'])
-turma = st.radio('Selecione a turma:', ['Selecione a opção'] + [f'{i}ª' for i in range(1, 11)])
+#Turmas de 1 à 10
+turma = st.radio('Selecione a turma:', ['Selecione a opção'] + [f'{i}ª' for i in range(1, 11)]) 
 sessao = st.number_input('Digite a sessão:', 0, 1000)
 
 # Verificar se o valor da sessão é 0
@@ -33,15 +34,25 @@ elif tipo == 'Selecione a opção' or turma == 'Selecione a opção':
     st.error('Por favor, selecione todas as opções antes de prosseguir.')
 else:
     # Data
-    data = st.date_input('Data da Reunião:', value=datetime.datetime(1900, 1, 1))
-    #Hora
-    hora = st.time_input('Hora da Reunião:', value=datetime.time(0, 0))
+    data = st.date_input('Data da Reunião:', value=datetime.datetime(2024, 1, 1), format="MM/DD/YYYY")
+# Hora
+    hora = st.time_input('Hora da Reunião:', value=datetime.time(8, 0), step=1800)
 
-    #Arquivo
+# Arquivo
     uploaded_file = st.file_uploader('Selecione o arquivo:')
 
+# Verificar se o arquivo foi carregado
+    if data == datetime.date(data.year, 1, 1):
+        st.error('Por favor, revise a data fornecida.')
+    elif hora.hour == 8 and hora.minute == 0:
+        st.error('Por favor, revise a hora fornecida.')
+    elif uploaded_file is None:
+        st.error('Por favor, carregue um arquivo.')
+
+
     # Gerar o nome do arquivo
-    if uploaded_file is not None and data.year != 1900 and (hora.hour != 0 or hora.minute != 0):
+    if uploaded_file is not None and (hora.hour != 8 or hora.minute != 0) and data != datetime.date(data.year, 1, 1):
+        
         # Display the selected options
         st.write('Opções selecionadas:')
         st.write('Tipo:', tipo)
@@ -60,5 +71,5 @@ else:
         with col2:
             if st.button('Publicar'):
                 st.success('Arquivo publicado com sucesso!')
-    else:
-        st.error('Por favor, selecione todas as opções e carregue um arquivo antes de clicar em Publicar.')
+    # else:
+    #     st.error('Por favor, revise as informações fornecidas.')
