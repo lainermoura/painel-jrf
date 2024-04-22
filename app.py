@@ -34,7 +34,8 @@ elif tipo == 'Selecione a opção' or turma == 'Selecione a opção':
     st.error('Por favor, selecione todas as opções antes de prosseguir.')
 else:
     # Data
-    data = st.date_input('Data da Reunião:', value=datetime.datetime(2024, 1, 1), format="MM/DD/YYYY")
+    date = datetime.date.today()
+    data = st.date_input('Data da Reunião:', value=datetime.date(date.year, 1, 1), format='DD/MM/YYYY')
 # Hora
     hora = st.time_input('Hora da Reunião:', value=datetime.time(8, 0), step=1800)
 
@@ -71,5 +72,4 @@ else:
         with col2:
             if st.button('Publicar'):
                 st.success('Arquivo publicado com sucesso!')
-    # else:
-    #     st.error('Por favor, revise as informações fornecidas.')
+
