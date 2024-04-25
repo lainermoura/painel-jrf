@@ -11,7 +11,6 @@ def generate_filename(tipo, sessao, turma, data, hora, distribuicao, num_ata_dis
     if turma is not None:
         turma = f"{int(turma.replace('ª', '')):02d}"
 
-    extensao = '.pdf'
     # Gerar o nome do arquivo
     #Tipo (Ata || Pauta) + Turma (00) + Sessão (000) + Ano (0000) + Data (YYYYMMDD) + Hora (HHMM) + Extensão
     #Exemplo: ATA-JRF00-000-0000-202401010800.pdf
@@ -20,21 +19,24 @@ def generate_filename(tipo, sessao, turma, data, hora, distribuicao, num_ata_dis
     #1-A-ATA-DISTRIBUICAO-JRF_202401010800.pdf
     #RETIFICACAO-1A-ATA-DISTRIBUICAO-JRF_AAAAMMDDHHMM.pdf
 
-    if tipo.lower() == 'pauta':
-        filename = f"{tipo.upper()}-JRF{turma}{sessao:03d}{ano_str}_{data_str}{hora_str}{extensao}"
-    elif tipo.lower() == 'ata':
-        filename = f"{tipo.upper()}-JRF{turma}{sessao:03d}{ano_str}_{data_str}{hora_str}{extensao}"
-    elif tipo.lower() == 'ata de distribuição':
+    extensao = '.pdf'
+    tipo = tipo.upper()
+
+    if tipo == 'PAUTA':
+        filename = f"{tipo}-JRF{turma}{sessao:03d}{ano_str}_{data_str}{hora_str}{extensao}"
+    elif tipo == 'ATA':
+        filename = f"{tipo}-JRF{turma}{sessao:03d}{ano_str}_{data_str}{hora_str}{extensao}"
+    elif tipo == 'ATA DE DISTRIBUIÇÃO':
         if distribuicao == 'Ata de Distribuição':
             filename = f"{num_ata_distrib}A-ATA-DISTRIBUICAO-JRF_{data_str}{hora_str}{extensao}"
         elif distribuicao == 'Retificação':
             filename = f"RETIFICACAO-{num_ata_distrib}A-ATA-DISTRIBUICAO-JRF_{data_str}{hora_str}{extensao}"
     return filename
 
-#Header|Subtitulo
+#Header|Subheader
 st.header(':blue[Secretaria Municipal de Fazenda - Niterói]', divider='orange')
 
-#Cria colunas para alinahar subtítulo à direita
+#Cria colunas para alinhar subheader à direita
 col1, col2 = st.columns([1,1])
 with col2:
     st.subheader(':blue[Junta de Revisão Fiscal]')
@@ -60,7 +62,7 @@ if tipo != 'Selecione a opção':
 
     # Verificar se o valor da sessão ou num_ata_distrib é 0
     if (sessao == 0 and tipo != 'Ata de Distribuição') or (num_ata_distrib == 0 and tipo == 'Ata de Distribuição'):
-        st.error('Digite o número da ata.')
+        st.error('Digite o número da sessão.')
     elif (tipo != 'Ata de Distribuição' and turma == 'Selecione a opção') or (tipo == 'Ata de Distribuição' and distribuicao is None):
         st.error('Por favor, selecione todas as opções antes de prosseguir.')
     else:
@@ -74,8 +76,8 @@ if tipo != 'Selecione a opção':
         # Hora
         hora = st.time_input('Hora da Reunião:', value=datetime.time(8, 0), step=1800)
 
-        # Arquivo
-        uploaded_file = st.file_uploader('Selecione o arquivo:')
+        # Arquivo tipo pdf
+        uploaded_file = st.file_uploader('Selecione o arquivo:', type=['pdf'])
 
         # Verificar se o arquivo foi carregado
         if hora.hour == 8 and hora.minute == 0:
@@ -86,7 +88,7 @@ if tipo != 'Selecione a opção':
         # Gerar o nome do arquivo
         if uploaded_file is not None and (hora.hour != 8 or hora.minute != 0):
 
-            # Display the selected options
+            # Mostrar as opções selecionadas
             st.write('Opções selecionadas:')
             st.write('Tipo:', tipo)
             if tipo != 'Ata de Distribuição':
@@ -110,5 +112,5 @@ if tipo != 'Selecione a opção':
 
             # Alinhamento do botão
             with col2:
-                if st.button('Publicar'):
+                if st.button('Publicar', on_click=''):
                     st.success('Arquivo publicado com sucesso!')
