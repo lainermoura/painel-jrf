@@ -30,8 +30,9 @@ def generate_filename(tipo, sessao, turma, data, hora, distribuicao, num_ata_dis
 
 
 #Corpo do Streamlit
+st.image('logo-SMF.png', width=350)
 #Header|Subheader
-st.header(':blue[Secretaria Municipal de Fazenda - Niterói]', divider='orange')
+st.header('', divider='orange')
 
 #Cria colunas para alinhar subheader à direita
 col1, col2 = st.columns([1,1])
@@ -71,9 +72,9 @@ if tipo != 'Selecione a opção':
         col1, col2, col3 = st.columns([1, 1, 1])
 
         with col1:
-            sessao2 = st.number_input('Digite a sessão2:', 0, 1000)
+            sessao = st.number_input('Digite a sessão2:', 0, 1000)
 
-        desabilitado = True if sessao2 == 0 else False
+        desabilitado = True if sessao == 0 else False
 
         with col2:
             # Data
