@@ -1,6 +1,8 @@
 import streamlit as st
 import datetime as datetime
 
+
+#Função para gerar o nome do arquivo
 def generate_filename(tipo, sessao, turma, data, hora, distribuicao, num_ata_distrib):
     # Formatar a data e a hora no formato desejado
     data_str = data.strftime('%Y%m%d')
@@ -12,13 +14,6 @@ def generate_filename(tipo, sessao, turma, data, hora, distribuicao, num_ata_dis
         turma = f"{int(turma.replace('ª', '')):02d}"
 
     # Gerar o nome do arquivo
-    #Tipo (Ata || Pauta) + Turma (00) + Sessão (000) + Ano (0000) + Data (YYYYMMDD) + Hora (HHMM) + Extensão
-    #Exemplo: ATA-JRF00-000-0000-202401010800.pdf
-
-    #ata de distribuição || Retificação da ata de distribuição
-    #1-A-ATA-DISTRIBUICAO-JRF_202401010800.pdf
-    #RETIFICACAO-1A-ATA-DISTRIBUICAO-JRF_AAAAMMDDHHMM.pdf
-
     extensao = '.pdf'
     tipo = tipo.upper()
 
@@ -33,11 +28,15 @@ def generate_filename(tipo, sessao, turma, data, hora, distribuicao, num_ata_dis
             filename = f"RETIFICACAO-{num_ata_distrib}A-ATA-DISTRIBUICAO-JRF_{data_str}{hora_str}{extensao}"
     return filename
 
+
+#Corpo do Streamlit
+st.image('logo-SMF.png', width=350)
 #Header|Subheader
-st.header(':blue[Secretaria Municipal de Fazenda - Niterói]', divider='orange')
+st.header('', divider='orange')
 
 #Cria colunas para alinhar subheader à direita
 col1, col2 = st.columns([1,1])
+
 with col2:
     st.subheader(':blue[Junta de Revisão Fiscal]')
 
@@ -55,60 +54,73 @@ if tipo != 'Selecione a opção':
         sessao = None
     else:
         #Turmas de 1 à 10
-        turma = st.radio("Selecione a turma:", ['Selecione a opção'] + [f'{i}ª' for i in range(1, 11)])
-        sessao = st.number_input('Digite a sessão:', 0, 1000)
+        turma = st.radio("Selecione a turma:", [f'{i}ª' for i in range(1, 11)], index=None, horizontal=True)
+        sessao = None
         distribuicao = None
         num_ata_distrib = None
 
     # Verificar se o valor da sessão ou num_ata_distrib é 0
-    if (sessao == 0 and tipo != 'Ata de Distribuição'):
+    if turma is None:
+        st.error('Por favor, selecione uma turma.')
+    elif (sessao == 0 and tipo != 'Ata de Distribuição'):
         st.error('Digite o número da sessão.')
     elif (num_ata_distrib == 0 and tipo == 'Ata de Distribuição'):
         st.error('Digite o número da ata de distribuição.')
     elif (tipo != 'Ata de Distribuição' and turma == 'Selecione a opção') or (tipo == 'Ata de Distribuição' and distribuicao is None):
         st.error('Por favor, selecione todas as opções antes de prosseguir.')
     else:
-        # Data
-        date = datetime.date.today()
-        data = st.date_input('Data da Reunião:', value=date, format='DD/MM/YYYY')
+        col1, col2, col3 = st.columns([1, 1, 1])
 
-        # Verificar se a data é a data atual do sistema
-        if data == date:
-            st.warning(f'(Se a data de reunião não for HOJE, altere para a data desejada.)')
+        with col1:
+            sessao = st.number_input('Digite a sessão:', 0, 1000)
 
-        # Hora
-        hora = st.time_input('Hora da Reunião:', value=datetime.time(8, 0), step=1800)
+        desabilitado = True if sessao == 0 else False
+
+        with col2:
+            # Data
+            date = datetime.date.today()
+            data = st.date_input('Data da Reunião:', value=None, format='DD/MM/YYYY', disabled=desabilitado)
+
+        with col3:
+            # Hora
+            hora = st.time_input('Hora da Reunião:', value=datetime.time(8, 0), step=1800, disabled=desabilitado)
 
         # Arquivo tipo pdf
         uploaded_file = st.file_uploader('Selecione o arquivo:', type=['pdf'])
 
         # Verificar se o arquivo foi carregado
-        if hora.hour == 8 and hora.minute == 0:
+        if data == None:
+            st.error('Por favor, digite a data da reunião.')
+        elif hora.hour == 8 and hora.minute == 0:
             st.error('Por favor, revise a hora fornecida.')
         elif uploaded_file is None:
             st.error('Por favor, carregue um arquivo.')
 
-        # Gerar o nome do arquivo
+        # Condicional para selecionar o arquivo
         if uploaded_file is not None and (hora.hour != 8 or hora.minute != 0):
 
             # Mostrar as opções selecionadas
-            st.write('Opções selecionadas:')
-            st.write('Tipo:', tipo)
-            if tipo != 'Ata de Distribuição':
-                st.write('Turma:', turma)
-                st.write('Sessão:', sessao)
-            else:
-                st.write('Opção:', distribuicao)
-                st.write('Número da Ata de Distribuição:', num_ata_distrib)
-            if data == date:
-                st.markdown(f'Data da Reunião: {data.strftime("%d/%m/%Y")} (**HOJE**)')
 
-            else:
-                st.write('Data da Reunião:', data.strftime('%d/%m/%Y'))
-            st.write('Hora da Reunião:', hora.strftime('%H:%M'))
+            container = st.container(border=True)
+            file_name = generate_filename(tipo, sessao, turma, data, hora, distribuicao, num_ata_distrib)
 
-            filename = generate_filename(tipo, sessao, turma, data, hora, distribuicao, num_ata_distrib)
-            st.write('Nome do arquivo:', filename)
+            selecionados = [
+            ('Tipo', tipo),
+            ('Turma', turma) if tipo != 'Ata de Distribuição' else None,
+            ('Sessão', sessao) if tipo != 'Ata de Distribuição' else None,
+            ('Opção', distribuicao) if tipo == 'Ata de Distribuição' else None,
+            ('Número da Ata de Distribuição', num_ata_distrib) if tipo == 'Ata de Distribuição' else None,
+            ('Data e hora da reunião', '{} às {}'.format(data.strftime("%d/%m/%Y"), hora.strftime("%Hh%M"))),
+            ('Nome do arquivo', file_name)
+        ]
+
+            text = 'Opções selecionadas:\n\n'
+            for selecao in [opcao for opcao in selecionados if opcao is not None]:
+                if None not in selecao:  # Checar se None está na tupla
+                    text += '* {}: {}\n'.format(*selecao)
+
+            container.markdown(text)
+
 
             # Cria colunas
             col1, col2 = st.columns([1,1])
