@@ -61,8 +61,10 @@ if tipo != 'Selecione a opção':
         num_ata_distrib = None
 
     # Verificar se o valor da sessão ou num_ata_distrib é 0
-    if (sessao == 0 and tipo != 'Ata de Distribuição') or (num_ata_distrib == 0 and tipo == 'Ata de Distribuição'):
+    if (sessao == 0 and tipo != 'Ata de Distribuição'):
         st.error('Digite o número da sessão.')
+    elif (num_ata_distrib == 0 and tipo == 'Ata de Distribuição'):
+        st.error('Digite o número da ata de distribuição.')
     elif (tipo != 'Ata de Distribuição' and turma == 'Selecione a opção') or (tipo == 'Ata de Distribuição' and distribuicao is None):
         st.error('Por favor, selecione todas as opções antes de prosseguir.')
     else:
@@ -72,7 +74,8 @@ if tipo != 'Selecione a opção':
 
         # Verificar se a data é a data atual do sistema
         if data == date:
-            st.markdown(f'Data da Reunião: {data.strftime("%d/%m/%Y")} (**HOJE**)')
+            st.warning(f'(Se a data de reunião não for HOJE, altere para a data desejada.)')
+
         # Hora
         hora = st.time_input('Hora da Reunião:', value=datetime.time(8, 0), step=1800)
 
