@@ -49,7 +49,7 @@ tipo = st.selectbox('Selecione o tipo:', ('Selecione a opção',  'Ata', 'Ata de
 if tipo != 'Selecione a opção':
     if tipo == 'Ata de Distribuição':
         distribuicao = st.radio('Selecione a opção:', ['Ata de Distribuição', 'Retificação'])
-        num_ata_distrib = st.number_input('Digite o número da ata de distribuição:', 0, 1000)
+        num_ata_distrib = None
         turma = None
         sessao = None
     else:
@@ -60,7 +60,7 @@ if tipo != 'Selecione a opção':
         num_ata_distrib = None
 
     # Verificar se o valor da sessão ou num_ata_distrib é 0
-    if turma is None:
+    if turma is None and tipo != 'Ata de Distribuição':
         st.error('Por favor, selecione uma turma.')
     elif (sessao == 0 and tipo != 'Ata de Distribuição'):
         st.error('Digite o número da sessão.')
@@ -70,11 +70,14 @@ if tipo != 'Selecione a opção':
         st.error('Por favor, selecione todas as opções antes de prosseguir.')
     else:
         col1, col2, col3 = st.columns([1, 1, 1])
-
+    
         with col1:
-            sessao = st.number_input('Digite a sessão:', 0, 1000)
+            if tipo != 'Ata de Distribuição':
+                sessao = st.number_input('Digite a sessão:', 0, 1000)
+            elif tipo == 'Ata de Distribuição':
+                num_ata_distrib = st.number_input('Ata de distribuição nº:', 0, 1000)
 
-        desabilitado = True if sessao == 0 else False
+        desabilitado = True if (tipo == 'Ata de Distribuição' and num_ata_distrib == 0) or (tipo != 'Ata de Distribuição' and sessao == 0) else False
 
         with col2:
             # Data
@@ -83,7 +86,7 @@ if tipo != 'Selecione a opção':
 
         with col3:
             # Hora
-            hora = st.time_input('Hora da Reunião:', value=datetime.time(8, 0), step=1800, disabled=desabilitado)
+            hora = st.time_input('Hora da Reunião:', value=datetime.time(8, 30), step=1800, disabled=desabilitado)
 
         # Arquivo tipo pdf
         uploaded_file = st.file_uploader('Selecione o arquivo:', type=['pdf'])
@@ -91,13 +94,13 @@ if tipo != 'Selecione a opção':
         # Verificar se o arquivo foi carregado
         if data == None:
             st.error('Por favor, digite a data da reunião.')
-        elif hora.hour == 8 and hora.minute == 0:
+        elif hora.hour == 8 and hora.minute == 30:
             st.error('Por favor, revise a hora fornecida.')
         elif uploaded_file is None:
             st.error('Por favor, carregue um arquivo.')
 
         # Condicional para selecionar o arquivo
-        if uploaded_file is not None and (hora.hour != 8 or hora.minute != 0):
+        if uploaded_file is not None and (hora.hour != 8 or hora.minute != 30):
 
             # Mostrar as opções selecionadas
 
