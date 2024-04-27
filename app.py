@@ -100,7 +100,7 @@ if tipo != 'Selecione a opção':
             st.error('Por favor, carregue um arquivo.')
 
         # Condicional para selecionar o arquivo
-        if uploaded_file is not None and (hora.hour != 8 or hora.minute != 30):
+        if uploaded_file is not None and num_ata_distrib != 0 and data is not None and (hora.hour != 8 or hora.minute != 30):
 
             # Mostrar as opções selecionadas
 
