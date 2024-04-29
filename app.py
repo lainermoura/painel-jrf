@@ -70,7 +70,7 @@ if tipo != 'Selecione a opção':
         st.error('Por favor, selecione todas as opções antes de prosseguir.')
     else:
         col1, col2, col3 = st.columns([1, 1, 1])
-    
+
         with col1:
             if tipo != 'Ata de Distribuição':
                 sessao = st.number_input('Digite a sessão:', 0, 1000)
@@ -92,15 +92,19 @@ if tipo != 'Selecione a opção':
         uploaded_file = st.file_uploader('Selecione o arquivo:', type=['pdf'])
 
         # Verificar se o arquivo foi carregado
-        if data == None:
+        if sessao == 0 and tipo != 'Ata de Distribuição':
+            st.error('Por favor, forneça a sessão da reunião.')
+        elif num_ata_distrib == 0 and tipo == 'Ata de Distribuição':
+            st.error('Por favor, forneça o número da ata de distribuição.')
+        elif data == None:
             st.error('Por favor, digite a data da reunião.')
-        elif hora.hour == 8 and hora.minute == 30:
+        elif (hora.hour < 9) or (hora.hour > 18):
             st.error('Por favor, revise a hora fornecida.')
         elif uploaded_file is None:
             st.error('Por favor, carregue um arquivo.')
 
         # Condicional para selecionar o arquivo
-        if uploaded_file is not None and num_ata_distrib != 0 and data is not None and (hora.hour != 8 or hora.minute != 30):
+        if uploaded_file is not None and (num_ata_distrib != 0 and sessao != 0 ) and data is not None and (hora.hour > 8) and (hora.hour <= 18):
 
             # Mostrar as opções selecionadas
 
