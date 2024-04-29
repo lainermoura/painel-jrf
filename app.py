@@ -1,5 +1,6 @@
 import streamlit as st
 import datetime as datetime
+import time
 
 
 #Função para gerar o nome do arquivo
@@ -44,17 +45,17 @@ with col2:
 st.title('Pautas, Atas e Atas de Distribuição')
 
 #Tipo, Sessão e Turma
-tipo = st.selectbox('Selecione o tipo:', ('Selecione a opção',  'Ata', 'Ata de Distribuição', 'Pauta'))
+tipo = st.selectbox('Selecione o tipo:', ('Selecione a opção',  'Ata', 'Ata de Distribuição', 'Pauta'), key='tipo')
 
 if tipo != 'Selecione a opção':
     if tipo == 'Ata de Distribuição':
-        distribuicao = st.radio('Selecione a opção:', ['Ata de Distribuição', 'Retificação'])
+        distribuicao = st.radio('Selecione a opção:', ['Ata de Distribuição', 'Retificação'], key='tipo_distribuicao')
         num_ata_distrib = None
         turma = None
         sessao = None
     else:
         #Turmas de 1 à 10
-        turma = st.radio("Selecione a turma:", [f'{i}ª' for i in range(1, 11)], index=None, horizontal=True)
+        turma = st.radio("Selecione a turma:", [f'{i}ª' for i in range(1, 11)], index=None, horizontal=True, key='turma')
         sessao = None
         distribuicao = None
         num_ata_distrib = None
@@ -73,23 +74,23 @@ if tipo != 'Selecione a opção':
 
         with col1:
             if tipo != 'Ata de Distribuição':
-                sessao = st.number_input('Digite a sessão:', 0, 1000)
+                sessao = st.number_input('Digite a sessão:', 0, 1000, key='sessao')
             elif tipo == 'Ata de Distribuição':
-                num_ata_distrib = st.number_input('Ata de distribuição nº:', 0, 1000)
+                num_ata_distrib = st.number_input('Ata de distribuição nº:', 0, 1000, key='num_ata_distrib')
 
         desabilitado = True if (tipo == 'Ata de Distribuição' and num_ata_distrib == 0) or (tipo != 'Ata de Distribuição' and sessao == 0) else False
 
         with col2:
             # Data
             date = datetime.date.today()
-            data = st.date_input('Data da Reunião:', value=None, format='DD/MM/YYYY', disabled=desabilitado)
+            data = st.date_input('Data da Reunião:', value=None, format='DD/MM/YYYY', disabled=desabilitado, key='data')
 
         with col3:
             # Hora
-            hora = st.time_input('Hora da Reunião:', value=datetime.time(8, 30), step=1800, disabled=desabilitado)
+            hora = st.time_input('Hora da Reunião:', value=datetime.time(8, 30), step=1800, disabled=desabilitado, key='hora')
 
         # Arquivo tipo pdf
-        uploaded_file = st.file_uploader('Selecione o arquivo:', type=['pdf'])
+        uploaded_file = st.file_uploader('Selecione o arquivo:', type=['pdf'], key='arquivo')
 
         # Verificar se o arquivo foi carregado
         if sessao == 0 and tipo != 'Ata de Distribuição':
@@ -133,6 +134,12 @@ if tipo != 'Selecione a opção':
             col1, col2 = st.columns([1,1])
 
             # Alinhamento do botão
+
             with col2:
-                if st.button('Publicar', on_click=''):
-                    st.success('Arquivo publicado com sucesso!')
+                if st.button('Publicar'):
+                    if st.success('Arquivo publicado com sucesso!'):
+                            turma_escolhida = f'{int(turma.replace('ª', ''))}'
+                            tipo_link = f'pautas-atas-de-julgamentos/#{turma_escolhida}' if tipo != 'Ata de Distribuição' else 'distribuicao'
+                            st.toast(f'Confira o arquivo publicado em: https://www.fazenda.niteroi.rj.gov.br/jrf/{tipo_link}', icon="✅")
+                            time.sleep(5)
+
