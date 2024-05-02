@@ -1,6 +1,7 @@
 import streamlit as st
 import datetime as datetime
 import time
+import database
 
 
 #Função para gerar o nome do arquivo
@@ -29,11 +30,18 @@ def generate_filename(tipo, sessao, turma, data, hora, distribuicao, num_ata_dis
             filename = f"RETIFICACAO-{num_ata_distrib}A-ATA-DISTRIBUICAO-JRF_{data_str}{hora_str}{extensao}"
     return filename
 
+ocultar_menu = """
+    <style>
+    [data-testid="stHeader"] {visibility: hidden;}
+    </style>
+    """
 
+# st.title('')
 #Corpo do Streamlit
 st.image('logo-SMF.png', width=350)
+st.markdown(f'{ocultar_menu}<hr style="margin:0;border-bottom:2.5px solid #ed6f13;"/>', unsafe_allow_html=True)
 #Header|Subheader
-st.header('', divider='orange')
+# st.header('', divider='orange')
 
 #Cria colunas para alinhar subheader à direita
 col1, col2 = st.columns([1,1])
@@ -42,7 +50,7 @@ with col2:
     st.subheader(':blue[Junta de Revisão Fiscal]')
 
 #Título
-st.title('Pautas, Atas e Atas de Distribuição')
+# st.title('Pautas, Atas e Atas de Distribuição')
 
 #Tipo, Sessão e Turma
 tipo = st.selectbox('Selecione o tipo:', ('Selecione a opção',  'Ata', 'Ata de Distribuição', 'Pauta'), key='tipo')
@@ -131,15 +139,34 @@ if tipo != 'Selecione a opção':
 
 
             # Cria colunas
-            col1, col2 = st.columns([1,1])
+            col1, col2, col3 = st.columns([2,1,2])
 
             # Alinhamento do botão
 
+            # Cria colunas
+            col1, col2, col3 = st.columns([2,1,2])
+            col4, col5, col6 = st.columns([.1, 2, .1])
+
             with col2:
+                conn = database.create_connection()
                 if st.button('Publicar'):
-                    if st.success('Arquivo publicado com sucesso!'):
-                            turma_escolhida = f'{int(turma.replace('ª', ''))}'
-                            tipo_link = f'pautas-atas-de-julgamentos/#{turma_escolhida}' if tipo != 'Ata de Distribuição' else 'distribuicao'
-                            st.toast(f'Confira o arquivo publicado em: https://www.fazenda.niteroi.rj.gov.br/jrf/{tipo_link}', icon="✅")
-                            time.sleep(5)
+                    # Verificar se o arquivo foi carregado
+                    if uploaded_file is not None:
+                        file_data = uploaded_file.read()
+                        file_name = generate_filename(tipo, sessao, turma, data, hora, distribuicao, num_ata_distrib)
+                        database.create_files_table(conn)
+                        if 'file_data' in locals() and 'file_name' in locals():
+                            with col5:
+                                if database.save_file_to_db(conn, file_data, file_name):
+                                    success_message = f'{tipo} da **{sessao}ª sessão**  postada na **{turma} turma**!' if tipo != 'Ata de Distribuição' else f'{tipo} postada!'
+                                    st.success(success_message)
+                                    time.sleep(2)
+                                    st.toast(f'{file_name}', icon='✅')
+                                    time.sleep(1)
+                                    turma_escolhida = f"{int(turma.replace('ª', ''))}" if turma is not None else None
+                                    tipo_link = f'pautas-atas-de-julgamentos/#{turma_escolhida}' if distribuicao != 'Ata de Distribuição' else 'distribuicao/'
+                                    st.toast(f'Confira aqui o arquivo: https://www.fazenda.niteroi.rj.gov.br/jrf/{tipo_link}', icon='✅')
+                                else:
+                                    st.error('Confira as informações fornecidas. Este nome/arquivo já existe.')
+
 
