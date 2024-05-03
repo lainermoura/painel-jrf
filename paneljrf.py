@@ -3,6 +3,7 @@ import datetime as datetime
 import database
 import time
 from turmas import turmas
+import re
 
 
 #Função para gerar o nome do arquivo
@@ -167,18 +168,19 @@ if page == 'Publicações':
                                         st.error('Confira as informações fornecidas. Este nome/arquivo já existe.')
 else:
     turma_numero = st.radio("Selecione a turma:", [f'{i+1}ª' for i in range(0,10)], index=None, horizontal=True)
-if turma_numero is not None:
-    text_placeholder = f'Insira aqui o link da {turma_numero} turma.'
-    link = st.text_input('Link:', value='', placeholder=text_placeholder)
-    if link.startswith('https://teams.'):
-        if st.button('Prosseguir'):
-            # Cria uma instância da turma selecionada
-            turma_selecionada = turmas[int(turma_numero.replace('ª', ''))]
+    if turma_numero is not None:
+        text_placeholder = f'Insira aqui o link da {turma_numero} turma.'
+        link = st.text_input('Link:', value='', placeholder=text_placeholder, help='Insira um link do Teams')
+        button_slot = st.empty()
+        prosseguir_button = button_slot.button('Prosseguir')
 
-            # Exibe as informações da turma
-            st.write(f"Presidente: {turma_selecionada.presidente}")
-            st.write(f"Julgadores: {', '.join(turma_selecionada.julgadores)}")
-            st.write(f"Secretário: {turma_selecionada.secretario}")
+        padrao_https = r'\b((?:^(https?:\/\/))([a-zo0-9]+)|(^[a-zo0-9]+))\.([a-zo0-9]+)\.com\/.*\b'
 
-    else:
-        st.write('Por favor, insira um link do Teams.')
+        if re.match(padrao_https, link):
+            if prosseguir_button:
+                button_slot.empty()
+                turma_selecionada = turmas[int(turma_numero.replace('ª', ''))]
+                st.write(f"Presidente: {turma_selecionada.presidente}")
+                st.write(f"Julgadores: {', '.join(turma_selecionada.julgadores)}")
+                st.write(f"Secretário: {turma_selecionada.secretario}")
+                st.button(f'Atualizar link da {turma_numero} turma.')
