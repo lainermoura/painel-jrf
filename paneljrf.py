@@ -4,7 +4,9 @@ import database
 import time
 from turmas import turmas
 import re
+from st_keyup import st_keyup
 
+from streamlit.components.v1 import html
 
 #Função para gerar o nome do arquivo
 def generate_filename(tipo, sessao, turma, data, hora, distribuicao, num_ata_distrib):
@@ -32,18 +34,19 @@ def generate_filename(tipo, sessao, turma, data, hora, distribuicao, num_ata_dis
             filename = f"RETIFICACAO-{num_ata_distrib}A-ATA-DISTRIBUICAO-JRF_{data_str}{hora_str}{extensao}"
     return filename
 
-
-
-#Corpo do Streamlit
-st.image('logo-SMF.png', width=350)
-#Header|Subheader
-st.header('', divider='orange')
-
 ocultar_menu = """
     <style>
     [data-testid="stHeader"] {visibility: hidden;}
     </style>
-"""
+    """
+
+# st.title('')
+#Corpo do Streamlit
+st.image('logo-SMF.png', width=350)
+st.markdown(f'{ocultar_menu}<hr style="margin:0;border-bottom:2.5px solid #ed6f13;"/>', unsafe_allow_html=True)
+
+
+
 
 #Cria colunas para alinhar subheader à direita
 col1, col2 = st.columns([1,1])
@@ -166,21 +169,63 @@ if page == 'Publicações':
                                         st.toast(f'Confira aqui o arquivo: https://www.fazenda.niteroi.rj.gov.br/jrf/{tipo_link}', icon='✅')
                                     else:
                                         st.error('Confira as informações fornecidas. Este nome/arquivo já existe.')
+
+
 else:
     turma_numero = st.radio("Selecione a turma:", [f'{i+1}ª' for i in range(0,10)], index=None, horizontal=True)
     if turma_numero is not None:
-        text_placeholder = f'Insira aqui o link da {turma_numero} turma.'
-        link = st.text_input('Link:', value='', placeholder=text_placeholder, help='Insira um link do Teams')
-        button_slot = st.empty()
-        prosseguir_button = button_slot.button('Prosseguir')
+        text_placeholder = f'Insira aqui o link da {turma_numero} turma. (Use Control + V para colar o link)'
+        link = st_keyup('Link:', placeholder=text_placeholder)
+        # link = st.text_input('Link:', placeholder=text_placeholder, key='link')
+
+        evento_colar = """
+        <script>
+        parent.document.querySelector('iframe[data-testid="stIFrame"]').parentElement.style.display = 'none';
+        document.addEventListener('DOMContentLoaded', function() {
+            /*const link = parent.document.querySelector('iframe').contentDocument.getElementById('input_box');
+console.log(link)
+            link.addEventListener('paste', handlePaste);
+
+            function handlePaste(event) {
+                const clipboardData = event.clipboardData || top.window.clipboardData;
+                const pastedData = clipboardData.getData('text');
+                console.log({pastedData});
+                link.dispatchEvent(new Event('keyup'));
+            }*/
+            const targetElement = parent.document.querySelector('iframe').contentDocument.getElementById('input_box');
+console.log('nero')
+            let intervalId = setInterval(() => {
+                if (targetElement !== null) {
+                    // O elemento se tornou visível!
+                    clearInterval(intervalId);
+                    console.log('Elemento visível!');
+                    targetElement.addEventListener('paste', handlePaste);
+
+                    function handlePaste(event) {
+                        const clipboardData = event.clipboardData || top.window.clipboardData;
+                        const pastedData = clipboardData.getData('text');
+                        console.log({pastedData});
+                        event.preventDefault();
+
+                        targetElement.value = pastedData;
+                        targetElement.dispatchEvent(new Event('keyup'));
+                    }
+                }
+            }, 100);
+        }, false);
+        </script>
+        """
+
+        # st.markdown(evento_colar, unsafe_allow_html=True)
+        html(evento_colar)
 
         padrao_https = r'\b((?:^(https?:\/\/))([a-zo0-9]+)|(^[a-zo0-9]+))\.([a-zo0-9]+)\.com\/.*\b'
 
         if re.match(padrao_https, link):
-            if prosseguir_button:
-                button_slot.empty()
-                turma_selecionada = turmas[int(turma_numero.replace('ª', ''))]
-                st.write(f"Presidente: {turma_selecionada.presidente}")
-                st.write(f"Julgadores: {', '.join(turma_selecionada.julgadores)}")
-                st.write(f"Secretário: {turma_selecionada.secretario}")
-                st.button(f'Atualizar link da {turma_numero} turma.')
+            turma_selecionada = turmas[int(turma_numero.replace('ª', ''))]
+            st.write(f"Presidente: {turma_selecionada.presidente}")
+            st.write(f"Julgadores: {', '.join(turma_selecionada.julgadores)}")
+            st.write(f"Secretário: {turma_selecionada.secretario}")
+            col1,col2,col3=st.columns([1,1,1])
+            with col3:
+                st.button(f'Atualizar link da {turma_numero} turma.')
