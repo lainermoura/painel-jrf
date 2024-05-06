@@ -174,8 +174,8 @@ if page == 'Publicações':
 else:
     turma_numero = st.radio("Selecione a turma:", [f'{i+1}ª' for i in range(0,10)], index=None, horizontal=True)
     if turma_numero is not None:
-        text_placeholder = f'Insira aqui o link da {turma_numero} turma. (Use Control + V para colar o link)'
-        link = st_keyup('Link:', placeholder=text_placeholder)
+        text_placeholder = f'Insira aqui o link da turma.'
+        link_reuniao = st_keyup('Link:', placeholder=text_placeholder)
         # link = st.text_input('Link:', placeholder=text_placeholder, key='link')
 
         evento_colar = """
@@ -221,11 +221,21 @@ console.log('nero')
 
         padrao_https = r'\b((?:^(https?:\/\/))([a-zo0-9]+)|(^[a-zo0-9]+))\.([a-zo0-9]+)\.com\/.*\b'
 
-        if re.match(padrao_https, link):
-            turma_selecionada = turmas[int(turma_numero.replace('ª', ''))]
+
+        if re.match(padrao_https, link_reuniao):
+            id_turma = turma_numero.replace('ª', '')
+            turma_selecionada = turmas[int(id_turma)]
+            st.write(f'Alteração de link para a  **{turma_numero} turma**.')
             st.write(f"Presidente: {turma_selecionada.presidente}")
             st.write(f"Julgadores: {', '.join(turma_selecionada.julgadores)}")
             st.write(f"Secretário: {turma_selecionada.secretario}")
             col1,col2,col3=st.columns([1,1,1])
             with col3:
-                st.button(f'Atualizar link da {turma_numero} turma.')
+                conn = database.create_connection() 
+                if st.button(f'Atualizar link da {turma_numero} turma.'):
+                    database.create_turma_table(conn)
+                    if database.save_link_to_db(conn, link_reuniao, id_turma):
+                        st.success('Link atualizado!')
+                    else:
+                        st.error('Confira as informações fornecidas. Este link já existe.')    
+
