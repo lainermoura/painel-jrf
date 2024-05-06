@@ -49,19 +49,21 @@ def create_turma_table(conn):
         print(e)
 
 def save_link_to_db(conn, link_reuniao, id_turma):
-    
     try:
         with conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM links WHERE link_reuniao = ?", (link_reuniao,))
+            cursor.execute("SELECT * FROM links WHERE id_turma = ?", (id_turma,))
 
             data = cursor.fetchone()
-            if data is None:
-                cursor.execute("INSERT INTO links(link_reuniao, id_turma) VALUES (?, ?)", (link_reuniao, id_turma))
-                conn.commit()
-                return True
+            if data is not None:
+                cursor.execute("UPDATE links SET link_reuniao = ? WHERE id_turma = ?", (link_reuniao, id_turma))
             else:
-                return False
+                cursor.execute("INSERT INTO links(link_reuniao, id_turma) VALUES (?, ?)", (link_reuniao, id_turma))
+            conn.commit()
+            return True
     except Error as e:
         print(e)
         return False
+    finally:
+        conn.close()
+

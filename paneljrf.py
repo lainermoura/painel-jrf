@@ -4,6 +4,7 @@ import database
 import time
 from turmas import turmas
 import re
+from header import show_header
 from st_keyup import st_keyup
 
 from streamlit.components.v1 import html
@@ -34,26 +35,7 @@ def generate_filename(tipo, sessao, turma, data, hora, distribuicao, num_ata_dis
             filename = f"RETIFICACAO-{num_ata_distrib}A-ATA-DISTRIBUICAO-JRF_{data_str}{hora_str}{extensao}"
     return filename
 
-ocultar_menu = """
-    <style>
-    [data-testid="stHeader"] {visibility: hidden;}
-    </style>
-    """
-
-# st.title('')
-#Corpo do Streamlit
-st.image('logo-SMF.png', width=350)
-st.markdown(f'{ocultar_menu}<hr style="margin:0;border-bottom:2.5px solid #ed6f13;"/>', unsafe_allow_html=True)
-
-
-
-
-#Cria colunas para alinhar subheader à direita
-col1, col2 = st.columns([1,1])
-
-with col2:
-    st.subheader(':blue[Junta de Revisão Fiscal]')
-
+show_header()
 
 page = st.sidebar.selectbox('Menu', ('Publicações', 'Links'))
 
@@ -107,9 +89,6 @@ if page == 'Publicações':
 
             # Arquivo tipo pdf
             uploaded_file = st.file_uploader('Selecione o arquivo:', type=['pdf'])
-
-            # Verificar se o arquivo foi carregado
-            # Verificar se o arquivo foi carregado
 
             if data == None:
                 st.error('Por favor, digite a data da reunião.')
@@ -178,46 +157,9 @@ else:
         link_reuniao = st_keyup('Link:', placeholder=text_placeholder)
         # link = st.text_input('Link:', placeholder=text_placeholder, key='link')
 
-        evento_colar = """
-        <script>
-        parent.document.querySelector('iframe[data-testid="stIFrame"]').parentElement.style.display = 'none';
-        document.addEventListener('DOMContentLoaded', function() {
-            /*const link = parent.document.querySelector('iframe').contentDocument.getElementById('input_box');
-console.log(link)
-            link.addEventListener('paste', handlePaste);
-
-            function handlePaste(event) {
-                const clipboardData = event.clipboardData || top.window.clipboardData;
-                const pastedData = clipboardData.getData('text');
-                console.log({pastedData});
-                link.dispatchEvent(new Event('keyup'));
-            }*/
-            const targetElement = parent.document.querySelector('iframe').contentDocument.getElementById('input_box');
-console.log('nero')
-            let intervalId = setInterval(() => {
-                if (targetElement !== null) {
-                    // O elemento se tornou visível!
-                    clearInterval(intervalId);
-                    console.log('Elemento visível!');
-                    targetElement.addEventListener('paste', handlePaste);
-
-                    function handlePaste(event) {
-                        const clipboardData = event.clipboardData || top.window.clipboardData;
-                        const pastedData = clipboardData.getData('text');
-                        console.log({pastedData});
-                        event.preventDefault();
-
-                        targetElement.value = pastedData;
-                        targetElement.dispatchEvent(new Event('keyup'));
-                    }
-                }
-            }, 100);
-        }, false);
-        </script>
-        """
-
-        # st.markdown(evento_colar, unsafe_allow_html=True)
-        html(evento_colar)
+        with open('script.js', 'r') as file:
+            evento_colar = f"<script>{file.read()}</script>"
+            html(evento_colar)
 
         padrao_https = r'\b((?:^(https?:\/\/))([a-zo0-9]+)|(^[a-zo0-9]+))\.([a-zo0-9]+)\.com\/.*\b'
 
@@ -231,8 +173,8 @@ console.log('nero')
             st.write(f"Secretário: {turma_selecionada.secretario}")
             col1,col2,col3=st.columns([1,1,1])
             with col3:
-                conn = database.create_connection() 
                 if st.button(f'Atualizar link da {turma_numero} turma.'):
+                    conn = database.create_connection()
                     database.create_turma_table(conn)
                     if database.save_link_to_db(conn, link_reuniao, id_turma):
                         st.success('Link atualizado!')
