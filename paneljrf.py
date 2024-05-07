@@ -4,9 +4,9 @@ import database
 import time
 from turmas import turmas
 import re
-from header import show_header
+from components.header.header import show_header
 from st_keyup import st_keyup
-
+from streamlit_modal import Modal
 from streamlit.components.v1 import html
 
 #Função para gerar o nome do arquivo
@@ -163,21 +163,34 @@ else:
 
         padrao_https = r'\b((?:^(https?:\/\/))([a-zo0-9]+)|(^[a-zo0-9]+))\.([a-zo0-9]+)\.com\/.*\b'
 
-
+        modal = Modal(
+    f"Alteração de link da {turma_numero} turma",  # Título do modal
+    key="meu-modal",  # Chave opcional
+    padding=20,  # Valor padrão
+    max_width=744  # Valor padrão
+)
         if re.match(padrao_https, link_reuniao):
             id_turma = turma_numero.replace('ª', '')
             turma_selecionada = turmas[int(id_turma)]
-            st.write(f'Alteração de link para a  **{turma_numero} turma**.')
-            st.write(f"Presidente: {turma_selecionada.presidente}")
-            st.write(f"Julgadores: {', '.join(turma_selecionada.julgadores)}")
-            st.write(f"Secretário: {turma_selecionada.secretario}")
-            col1,col2,col3=st.columns([1,1,1])
-            with col3:
-                if st.button(f'Atualizar link da {turma_numero} turma.'):
-                    conn = database.create_connection()
-                    database.create_turma_table(conn)
-                    if database.save_link_to_db(conn, link_reuniao, id_turma):
-                        st.success('Link atualizado!')
-                    else:
-                        st.error('Confira as informações fornecidas. Este link já existe.')    
+            open_modal = st.button("Prosseguir")
+            if open_modal:
+                modal.open()
+            if modal.is_open():
+                with modal.container():
+                    st.write(f"""
 
+                    Presidente: {turma_selecionada.presidente}
+
+                    Julgadores: {', '.join(turma_selecionada.julgadores)}
+                    
+                    Secretário: {turma_selecionada.secretario}
+                    """)
+                    col1,col2,col3=st.columns([1,1,1])
+                    with col3:
+                        if st.button(f'Atualizar link da {turma_numero} turma.'):
+                            conn = database.create_connection()
+                            database.create_turma_table(conn)
+                            if database.save_link_to_db(conn, link_reuniao, id_turma):
+                                st.success('Link atualizado!')
+                            else:
+                                st.error('Confira as informações fornecidas. Este link já existe.')    
