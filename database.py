@@ -35,13 +35,12 @@ def save_file_to_db(conn, file_data, file_name):
     except Error as e:
         print(e)
         return False
-    
+
 def create_turma_table(conn):
     try:
-        sql = '''CREATE TABLE IF NOT EXISTS links (
-            id integer PRIMARY KEY,
-            link_reuniao VARCHAR(1000) NOT NULL,
-            id_turma VARCHAR(2) NOT NULL
+        sql = '''CREATE TABLE IF NOT EXISTS turmas (
+            id_turma INTEGER PRIMARY KEY AUTOINCREMENT,
+            link_reuniao VARCHAR(1000) NOT NULL UNIQUE
     );'''
         conn.execute(sql)
         print("Conexão estabelecida!")
@@ -66,4 +65,3 @@ def save_link_to_db(conn, link_reuniao, id_turma):
         return False
     finally:
         conn.close()
-
