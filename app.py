@@ -3,7 +3,6 @@ import datetime as datetime
 import time
 import database
 
-
 #Função para gerar o nome do arquivo
 def generate_filename(tipo, sessao, turma, data, hora, distribuicao, num_ata_distrib):
     # Formatar a data e a hora no formato desejado
